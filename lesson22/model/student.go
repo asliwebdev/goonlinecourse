@@ -33,3 +33,13 @@ type GetStudentResp struct {
 	Gender   string `json:"gender"`
 	Course   Course `json:"course"`
 }
+
+type UpdateStudentResp struct {
+	Name     string `json:"name"`
+	LastName string `json:"last_name"`
+	Phone    string `json:"phone"`
+	Age      int    `json:"age"`
+	Grade    int    `json:"grade"`
+	Gender   string `json:"gender"`
+	Course   Course `json:"course"`
+}
