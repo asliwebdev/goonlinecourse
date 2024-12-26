@@ -50,6 +50,41 @@ func (r *CourseRepository) GetCourse(courseID string) (*model.Course, error) {
 	return course, nil
 }
 
+func (r *CourseRepository) GetListCourse() ([]*model.Course, error) {
+	rows, err := r.db.Query(`
+		SELECT id, name, started_date, tutor, number, created_at, updated_at 
+		FROM course`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var courses []*model.Course
+
+	for rows.Next() {
+		course := &model.Course{}
+		err := rows.Scan(
+			&course.Id,
+			&course.Name,
+			&course.StartedAt,
+			&course.Tutor,
+			&course.Number,
+			&course.CreatedAt,
+			&course.UpdatedAt,
+		)
+		if err != nil {
+			return nil, err
+		}
+		courses = append(courses, course)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return courses, nil
+}
+
 func (r *CourseRepository) UpdateCourse(courseID string, course model.Course) (*model.Course, error) {
 	tx, err := r.db.Begin()
 	if err != nil {
@@ -63,6 +98,10 @@ func (r *CourseRepository) UpdateCourse(courseID string, course model.Course) (*
 		WHERE id = $6`,
 		course.Name, course.StartedAt, course.Tutor, course.Number, course.UpdatedAt, courseID,
 	)
+
+	if err != nil {
+		return nil, err
+	}
 
 	updatedCourse := &model.Course{}
 	err = r.db.QueryRow(`
@@ -90,8 +129,12 @@ func (r *CourseRepository) DeleteCourse(courseID string) error {
 	if err != nil {
 		return err
 	}
-	defer tx.Commit()
+
+	defer tx.Rollback()
 
 	_, err = tx.Exec(`DELETE FROM course WHERE id = $1`, courseID)
-	return err
+	if err != nil {
+		return err
+	}
+	return tx.Commit()
 }

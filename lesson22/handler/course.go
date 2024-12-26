@@ -146,3 +146,18 @@ func (h *Handler) DeleteCourse(w http.ResponseWriter, r *http.Request) {
 	}
 	_ = json.NewEncoder(w).Encode(response)
 }
+
+func (h *Handler) GetListCourse(w http.ResponseWriter, r *http.Request) {
+	courses, err := h.courseRepo.GetListCourse()
+	if err != nil {
+		http.Error(w, "Failed to retrieve courses", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(courses)
+	if err != nil {
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+		return
+	}
+}

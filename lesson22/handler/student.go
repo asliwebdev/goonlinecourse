@@ -28,6 +28,21 @@ func (h *Handler) CreateStudent(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (h *Handler) GetListStudent(w http.ResponseWriter, r *http.Request) {
+	students, err := h.studentRepo.GetListStudent()
+	if err != nil {
+		http.Error(w, "Failed to retrieve students", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(students)
+	if err != nil {
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+		return
+	}
+}
+
 func (h *Handler) GetStudent(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
 	resp, err := h.studentRepo.GetStudent(id)

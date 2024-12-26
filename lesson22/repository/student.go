@@ -44,6 +44,49 @@ func (r *StudentRepository) CreateStudent(student *model.CreateStudent) error {
 	return nil
 }
 
+func (r *StudentRepository) GetListStudent() ([]*model.GetStudentResp, error) {
+	rows, err := r.db.Query(`
+		select 
+			s.student_id, s.name, s.lastname, s.phone, s.age, s.grade, s.gender, 
+			c.name as course_name, c.number as course_number, c.tutor as course_tutor
+		from student s
+		left join student_course sc on s.student_id = sc.student_id
+		left join course c on sc.course_id = c.id
+	`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var students []*model.GetStudentResp
+
+	for rows.Next() {
+		student := &model.GetStudentResp{}
+		err := rows.Scan(
+			&student.Id,
+			&student.Name,
+			&student.LastName,
+			&student.Phone,
+			&student.Age,
+			&student.Grade,
+			&student.Gender,
+			&student.Course.Name,
+			&student.Course.Number,
+			&student.Course.Tutor,
+		)
+		if err != nil {
+			return nil, err
+		}
+		students = append(students, student)
+	}
+
+	if rows.Err() != nil {
+		return nil, rows.Err()
+	}
+
+	return students, nil
+}
+
 func (r *StudentRepository) GetStudent(id string) (*model.GetStudentResp, error) {
 	student := &model.GetStudentResp{}
 	err := r.db.QueryRow(`
